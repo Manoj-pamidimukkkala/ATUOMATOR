@@ -1,0 +1,75 @@
+import argparse
+import os
+import subprocess
+import sys
+
+# Define simple built-in templates to keep the tool self-contained
+TEMPLATES = {
+    "py": "#!/usr/bin/env python3\n\ndef main():\n    print('Hello World!')\n\nif __name__ == '__main__':\n    main();",
+    "html": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Page</title>\n</head>\n<body>\n    \n</body>\n</html>",
+    "js": "// JavaScript Entry Point\nconsole.log('Script loaded.');"
+}
+
+def create_file(filename):
+    """Automates file creation with boilerplate code based on extension."""
+    ext = filename.split('.')[-1] if '.' in filename else ''
+    
+    if os.path.exists(filename):
+        print(f"❌ Error: {filename} already exists.")
+        return
+
+    content = TEMPLATES.get(ext, "# New file")
+    
+    try:
+        with open(filename, 'w') as f:
+            f.write(content)
+        print(f"✅ Successfully created {filename} with default template.")
+    except Exception as e:
+        print(f"❌ Failed to create file: {e}")
+
+def upload_to_git(message):
+    """Automates git add, commit, and push sequence."""
+    try:
+        print("⏳ Running 'git add .'...")
+        subprocess.run(["git", "add", "."], check=True)
+        
+        print(f"⏳ Committing changes with message: '{message}'...")
+        subprocess.run(["git", "commit", "-m", message], check=True)
+        
+        print("⏳ Pushing to remote repository...")
+        # Automatically detects current branch to push safely
+        branch_res = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True, check=True)
+        current_branch = branch_res.stdout.strip()
+        
+        subprocess.run(["git", "push", "origin", current_branch], check=True)
+        print("🚀 Code successfully uploaded/pushed!")
+        
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Git automation failed. Ensure you are in a Git repo and authenticated. Error: {e}")
+    except FileNotFoundError:
+        print("❌ Error: Git is not installed or not found in your system PATH.")
+
+def main():
+    parser = argparse.ArgumentParser(description="DevAuto: Automate your coding and uploading workflows.")
+    subparsers = parser.add_add_subparsers(dest="command", help="Available automation commands")
+
+    # 'create' command arguments
+    create_parser = subparsers.add_parser("create", help="Create a new code file with templates.")
+    create_parser.add_argument("filename", type=str, help="Name of the file to create (e.g., app.py, index.html)")
+
+    # 'upload' command arguments
+    upload_parser = subparsers.add_parser("upload", help="Automate git add, commit, and push.")
+    upload_parser.add_argument("-m", "--message", type=str, default="Automated update via DevAuto", 
+                                help="Commit message (default: 'Automated update via DevAuto')")
+
+    args = parser.parse_args()
+
+    if args.command == "create":
+        create_file(args.filename)
+    elif args.command == "upload":
+        upload_to_git(args.message)
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
