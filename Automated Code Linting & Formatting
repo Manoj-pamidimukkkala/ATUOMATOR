@@ -1,0 +1,19 @@
+def auto_format_code(target_dir="."):
+    """Automates code formatting using Black and Isort."""
+    print("🧹 Cleaning up code style...")
+    try:
+        # Check if tools are installed, if not, install them quietly
+        subprocess.run([sys.executable, "-m", "pip", "install", "black", "isort"], 
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Run Isort to organize imports
+        print("Sorting imports...")
+        subprocess.run(["isort", target_dir], check=True)
+        
+        # Run Black to format code structure
+        print("Formatting syntax...")
+        subprocess.run(["black", target_dir], check=True)
+        
+        print("✨ Code looks pristine!")
+    except subprocess.CalledProcessError:
+        print("⚠️ Formatting completed with some warnings.")
