@@ -1,0 +1,16 @@
+def run_tests_before_upload():
+    """Runs tests in the workspace. Returns True if tests pass or don't exist."""
+    if os.path.exists("tests") or any(f.startswith("test_") for f in os.listdir(".")):
+        print("🧪 Running automated test suite before upload...")
+        
+        # Runs pytest (or change to standard 'unittest')
+        result = subprocess.run([sys.executable, "-m", "unittest", "discover"], capture_output=True)
+        
+        if result.returncode != 0:
+            print("❌ ABORTING UPLOAD: Your automated tests failed!")
+            print(result.stderr.decode())
+            return False
+        print("✅ All tests passed!")
+    else:
+        print("ℹ️ No test suite detected. Skipping test phase.")
+    return True
