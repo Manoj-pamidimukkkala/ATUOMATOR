@@ -1,0 +1,16 @@
+def handle_upload_workflow(custom_message):
+    config = load_or_create_config()
+    
+    # 1. Format
+    if config.get("auto_format_before_push"):
+        auto_format_code(".")
+        
+    # 2. Test
+    if config.get("run_tests_before_push"):
+        tests_passed = run_tests_before_upload()
+        if not tests_passed:
+            sys.exit(1) # Stop the script safely
+            
+    # 3. Push (using your original Git function)
+    commit_msg = custom_message if custom_message else config.get("default_commit_message")
+    upload_to_git(commit_msg)
